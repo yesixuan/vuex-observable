@@ -18,7 +18,7 @@ Vue.use(Vuex);
 
 const pingEpic = action$ =>
   action$.pipe(
-    filter(action => action.type === "test1"),
+    filter(action => action.type === "test"),
     delay(1000), // Asynchronously wait 1000ms then continue
     mapTo({ type: "PONG", num: 10, isAction: false }) // mapTo('PONG')
   );
