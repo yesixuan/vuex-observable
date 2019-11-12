@@ -54,6 +54,10 @@ export function createEpicPlugin(options = {}) {
     // 在创建的 $action 中，一定会发射另外的 $action
     // result$.subscribe(store.dispatch);
     result$.subscribe(action => {
+      // 有时候我们希望什么都不做，但是 epic 要求一定要发出一个流。
+      if (action && action.type === '@@observable/nothing') {
+        return
+      }
       if (action.isAction) {
         store.dispatch(action);
       } else {
