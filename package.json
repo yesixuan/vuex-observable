@@ -1,6 +1,6 @@
 {
   "name": "@ignorance/vuex-observable",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "RxJS based middleware for vuex. Compose and cancel async actions and more.",
   "module": "lib/esm/index.js",
   "main": "lib/cjs/index.js",

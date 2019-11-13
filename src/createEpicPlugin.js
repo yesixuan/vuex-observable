@@ -3,6 +3,10 @@ import { map, mergeMap, observeOn, subscribeOn } from 'rxjs/operators';
 import { ActionsObservable } from 'redux-observable';
 import { StateObservable } from 'redux-observable';
 
+const getType = target => typeof target === 'object' && target.type
+  ? target.type
+  : target
+
 // options 整合好的 Epic
 export function createEpicPlugin(options = {}) {
   const QueueScheduler = queueScheduler.constructor;
@@ -54,26 +58,46 @@ export function createEpicPlugin(options = {}) {
     // 在创建的 $action 中，一定会发射另外的 $action
     // result$.subscribe(store.dispatch);
     result$.subscribe(action => {
+      const type = getType(action)
       // 有时候我们希望什么都不做，但是 epic 要求一定要发出一个流。
-      if (action && action.type === '@@observable/nothing') {
+      if (type === '@@observable/nothing') {
         return
       }
-      if (action.isAction) {
+      if (typeof action === 'object' && action.isAction) {
         store.dispatch(action);
       } else {
         store.commit(action);
       }
     });
 
-    const { dispatch } = store;
+    const { dispatch, commit } = store;
     store.dispatch = (...args) => {
-      stateSubject$.next(store.state);
-      actionSubject$.next({ type: args[0], payload: args[1] });
+      const type = getType(args[0])
       // 如果定义了 action 就执行原来的 action， 没有就作罢
-      if (store._actions[args[0]]) {
-        dispatch.call(store, args[0], args[1]);
+      if (store._actions[type]) {
+        if (typeof args[0] === 'object') {
+          dispatch.call(store, args[0].type, args[0].payload || null);
+        } else {
+          dispatch.call(store, ...args);
+        }
       }
+      typeof args[0] === 'object'
+        ? actionSubject$.next(args[0])
+        : actionSubject$.next({ type: args[0], payload: args[1] })
     };
+    store.commit = (...args) => {
+      const type = getType(args[0])
+
+      // 如果定义了 mutation 就执行原来的 mutation， 没有就作罢
+      if (store._mutations[type]) {
+        if (typeof args[0] === 'object') {
+          commit.call(store, args[0].type, args[0].payload || null);
+        } else {
+          commit.call(store, ...args);
+        }
+        stateSubject$.next(store.state);
+      }
+    }
   };
 
   epicPlugin.run = rootEpic => {
