@@ -1,7 +1,11 @@
-import { Action } from 'vuex';
 import { Observable, ObservableInput, Operator, SchedulerLike, Subject } from 'rxjs';
+import {Store} from "vuex"
 
-export declare class ActionsObservable<T extends Action> extends Observable<T> {
+export interface Action<T = any> {
+  type: T
+}
+
+export declare class ActionsObservable<T extends Action | any> extends Observable<T> {
   /**
    * Just like RxJS itself, we can't actually make this method always type-safe
    * because we would need non-final position spread params e.g.
@@ -45,7 +49,8 @@ interface Options<D = any> {
   dependencies?: D;
 }
 
-export declare function createEpicPlugin<T extends Action, O extends T = T, S = void, D = any>(options?: Options<D>): EpicPlugin<T, O, S, D>;
+// export declare function createEpicPlugin<T extends Action, O extends T = T, S = void, D = any>(options?: Options<D>): EpicPlugin<T, O, S, D>;
+export declare function createEpicPlugin(store?: Store<any>): any;
 
 export declare function combineEpics<T extends Action, O extends T = T, S = void, D = any>(...epics: Epic<T, O, S, D>[]): Epic<T, O, S, D>;
 export declare function combineEpics<E>(...epics: E[]): E;

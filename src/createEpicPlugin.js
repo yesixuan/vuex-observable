@@ -72,18 +72,18 @@ export function createEpicPlugin(options = {}) {
 
     const { dispatch, commit } = store;
     store.dispatch = (...args) => {
+      typeof args[0] === 'object'
+        ? actionSubject$.next(args[0])
+        : actionSubject$.next({ type: args[0], payload: args[1] })
+
       const type = getType(args[0])
       // 如果定义了 action 就执行原来的 action， 没有就作罢
       if (store._actions[type]) {
         if (typeof args[0] === 'object') {
-          dispatch.call(store, args[0].type, args[0].payload || null);
-        } else {
-          dispatch.call(store, ...args);
+          return dispatch.call(store, args[0].type, args[0].payload || null);
         }
+        return dispatch.call(store, ...args);
       }
-      typeof args[0] === 'object'
-        ? actionSubject$.next(args[0])
-        : actionSubject$.next({ type: args[0], payload: args[1] })
     };
     store.commit = (...args) => {
       const type = getType(args[0])
@@ -92,10 +92,10 @@ export function createEpicPlugin(options = {}) {
       if (store._mutations[type]) {
         if (typeof args[0] === 'object') {
           commit.call(store, args[0].type, args[0].payload || null);
-        } else {
-          commit.call(store, ...args);
+          stateSubject$.next(store.state);
+          return
         }
-        stateSubject$.next(store.state);
+        return commit.call(store, ...args);
       }
     }
   };
