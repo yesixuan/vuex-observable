@@ -92,10 +92,10 @@ export function createEpicPlugin(options = {}) {
       if (store._mutations[type]) {
         if (typeof args[0] === 'object') {
           commit.call(store, args[0].type, args[0].payload || null);
-          stateSubject$.next(store.state);
-          return
+        } else {
+          commit.call(store, ...args);
         }
-        return commit.call(store, ...args);
+        stateSubject$.next(store.state);
       }
     }
   };
